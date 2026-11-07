@@ -1,9 +1,11 @@
-class InvalidIdFormatError(Exception): pass
+class InvalidFormatError(Exception): pass
 
-class InvalidNameFormatError(Exception): pass
+class InvalidIdFormatError(InvalidFormatError): pass
+class InvalidNameFormatError(InvalidFormatError): pass
+class InvalidPhoneFormatError(InvalidFormatError): pass
+class InvalidBirthDateFormatError(InvalidFormatError): pass
 
-class InvalidPhoneFormatError(Exception): pass
+class InvalidValueError(Exception): pass
 
-class InvalidBirthDateFormatError(Exception): pass
-
-class InvalidBirthDateError(Exception): pass
+class InvalidIdValueError(InvalidValueError): pass
+class InvalidBirthDateError(InvalidValueError): pass
