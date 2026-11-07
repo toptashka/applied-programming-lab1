@@ -151,6 +151,31 @@ class Coach(Person):
         self._groups.append(group)
         print(f"Coach {self.name} has been successfully assigned to the group: {group.group_name}")
 
+class TrainingGroup:
+    def __init__(self, group_name: str, sport: Sport, coach: Coach) -> None:
+        self.group_name: str = group_name
+        self.sport: Sport = sport
+        self.coach: Coach = coach
+        self.athletes: list[Athlete] = []
+
+    @property
+    def group_name(self) -> str:
+        return self._group_name
+
+    @group_name.setter
+    def group_name(self, value: str) -> None:
+        if value.strip() == "":
+            raise exceptions.InvalidNameFormatError("The name cannot be empty")
+        self._group_name = value
+
+    def add_athlete(self, athletes: Athlete):
+        self.athletes.append(athletes)
+        print(f"{athletes.name} successfully added")
+
+    def remove_athlete(self, athlete: Athlete):
+        self.athletes.remove(athlete)
+        print(f"{athlete.name} successfully removed")
+
 class Event:
     def __init__(self, date_time: str, duration_mins: int, location: Location) -> None:
         self._date_time: str = self._validate_date_time(date_time)
@@ -180,19 +205,20 @@ class Event:
         return duration_mins
 
 class Location:
-    def __init__(self, room_id: str, capacity: int) -> None:
-        self.room_id: str = room_id
+    def __init__(self, name_location: str, capacity: int) -> None:
+        self.name_location: str = name_location
         self.capacity: int = capacity
+        self.schedule: list[Event] = []
 
     @property
-    def room_id(self) -> str:
-        return self._room_id
+    def name_location(self) -> str:
+        return self._name_location
 
-    @room_id.setter
-    def room_id(self, value: str) -> None: 
+    @name_location.setter
+    def name_location(self, value: str) -> None: 
         if value.strip() == "":
-             raise exceptions.InvalidRoomIdFormatError("The room id cannot be empty")
-        self._room_id = value
+             raise exceptions.InvalidNameFormatError("The name cannot be empty")
+        self._name_location = value
 
     @property
     def capacity(self) -> int:
@@ -203,3 +229,23 @@ class Location:
         if value < 0:
              raise exceptions.InvalidValueError("The capacity cannot be negative")
         self._capacity = value
+
+class Manager(Person):
+    def __init__(self, access_level: int, person_id: int, name: str, phone: str) -> None:
+        super().__init__(person_id, name, phone)
+        self.access_level: int = access_level
+
+    @property
+    def access_level(self) -> int:
+        return self._access_level
+
+    @access_level.setter
+    def access_level(self, value: int) -> None:
+        if value <= 0:
+            raise exceptions.InvalidIdValueError("The access level must be positive")
+        self._access_level = value
+
+    def get_info(self) -> str:
+        base_info = super().get_info()                
+        return (f"{base_info}\n"
+                f"Access level: {self.access_level}\n")
