@@ -46,7 +46,7 @@ class Athlete(Person):
     def __init__(self, person_id: int, name: str, phone: str, birth_date: str) -> None:
         super().__init__(person_id, name, phone)
         self.birth_date: str = birth_date
-        self.certificate = None
+        self.certificate: bool = None
         self.achievements: list = []
 
     @property
@@ -74,3 +74,28 @@ class Athlete(Person):
                 f"Achievements: {len(self.achievements)}\n"
                 f"Certificate: {'Yes' if self.certificate else 'No'}")
 
+class Coach(Person):
+    def __init__(self, person_id: int, name: str, phone: str, experience_years: int, specialization: str) -> None:
+        super().__init__(person_id, name, phone)
+        self.experience_years: int = experience_years
+        self.specialization: str = specialization
+
+    @property
+    def experience_years(self) -> int:
+        return self._experience_years
+
+    @experience_years.setter
+    def experience_years(self, value: int) -> None:
+        if value < 3:
+            raise exceptions.InvalidExperienceYearsError("Length of service does not meet the requirements")
+        self._experience_years = value
+
+    @property
+    def specialization(self) -> str:
+        return self._specialization
+
+    @specialization.setter
+    def specialization(self, value: str) -> None:
+        if value.strip() == "":
+            raise exceptions.InvalidSpecializationFormatError("Specialization cannot be empty")
+        self._specialization = value
