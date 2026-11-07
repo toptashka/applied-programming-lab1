@@ -162,7 +162,7 @@ class Event:
         return self._date_time
 
     def _validate_date_time(self, date_time: str) -> str:
-        if not re.match(r'^\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}', date_time):
+        if not re.match(r'^\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}$', date_time):
             raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY HH:MM")
         try:
             datetime.strptime(date_time, "%d.%m.%Y %H:%M")
@@ -178,3 +178,28 @@ class Event:
         if duration_mins <= 0:
             raise exceptions.InvalidIdValueError("The duration in minutes must be positive")
         return duration_mins
+
+class Location:
+    def __init__(self, room_id: str, capacity: int) -> None:
+        self.room_id: str = room_id
+        self.capacity: int = capacity
+
+    @property
+    def room_id(self) -> str:
+        return self._room_id
+
+    @room_id.setter
+    def room_id(self, value: str) -> None: 
+        if value.strip() == "":
+             raise exceptions.InvalidRoomIdFormatError("The room id cannot be empty")
+        self._room_id = value
+
+    @property
+    def capacity(self) -> int:
+        return self._capacity
+    
+    @capacity.setter
+    def capacity(self, value: int) -> None: 
+        if value < 0:
+             raise exceptions.InvalidValueError("The capacity cannot be negative")
+        self._capacity = value
