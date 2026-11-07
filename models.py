@@ -57,7 +57,7 @@ class Athlete(Person):
     @birth_date.setter
     def birth_date(self, value: str) -> None:
         if not re.match(r'^\d{2}\.\d{2}\.\d{4}$', value):
-            raise exceptions.InvalidBirthDateFormatError("Invalid birth date format. Expected: DD.MM.YYYY")
+            raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY")
         try:
             parsed_date = datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
@@ -78,6 +78,40 @@ class Athlete(Person):
         self._achievements.append(achievement)
         print(f"{achievement.title} successfully added")
 
+    def add_medical_certificate(self, certificate: MedicalCertificate) -> None:
+        self.certificate = certificate
+
+class MedicalCertificate:
+    def __init__(self, issue_date: str, is_valid: bool) -> None:
+        self.issue_date: str = issue_date
+        self.is_valid: bool = is_valid
+
+    @property
+    def issue_date(self) -> str:
+        return self._issue_date
+        
+    @issue_date.setter
+    def issue_date(self, value: str) -> None:
+            if not re.match(r'^\d{2}\.\d{2}\.\d{4}$', value):
+            raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY")
+        try:
+            parsed_date = datetime.strptime(value, "%d.%m.%Y")
+        except ValueError:
+            raise exceptions.InvalidDateError("An invalid date has been specified")
+        if parsed_date > datetime.now():
+            raise exceptions.InvalidDateError("The issue date cannot be in the future")
+        self._issue_date = value
+
+    @property
+    def is_valid(self) -> bool:
+        return self._is_valid
+
+    @is_valid.setter
+    def is_valid(self, value: bool):
+        if not isinstance(value, bool):
+            raise exceptions.InvalidValueError("Invalid data type")
+        self._is_valid = value
+    
 class Coach(Person):
     def __init__(self, person_id: int, name: str, phone: str, experience_years: int, specialization: str) -> None:
         super().__init__(person_id, name, phone)
