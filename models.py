@@ -9,14 +9,14 @@ class Person:
         self.name: str = name
         self.phone: str = phone
 
+    @property
+    def person_id(self) -> int:
+        return self._person_id   
+
     def _validate_id(self, person_id: int) -> int:
         if person_id < 0:
             raise exceptions.InvalidIdValueError("The ID cannot be negative")
         return person_id
-    
-    @property
-    def person_id(self) -> int:
-        return self._person_id
 
     @property
     def name(self) -> str:
@@ -61,9 +61,9 @@ class Athlete(Person):
         try:
             parsed_date = datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
-            raise exceptions.InvalidBirthDateError("An invalid date has been specified")
+            raise exceptions.InvalidDateError("An invalid date has been specified")
         if parsed_date > datetime.now():
-            raise exceptions.InvalidBirthDateError("The date of birth cannot be in the future")
+            raise exceptions.InvalidDateError("The date of birth cannot be in the future")
         self._birth_date = value
 
     def get_info(self) -> str:
@@ -92,7 +92,7 @@ class MedicalCertificate:
         
     @issue_date.setter
     def issue_date(self, value: str) -> None:
-            if not re.match(r'^\d{2}\.\d{2}\.\d{4}$', value):
+        if not re.match(r'^\d{2}\.\d{2}\.\d{4}$', value):
             raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY")
         try:
             parsed_date = datetime.strptime(value, "%d.%m.%Y")
@@ -150,3 +150,31 @@ class Coach(Person):
     def assign_to_group(self, group: TrainingGroup) -> None:
         self._groups.append(group)
         print(f"Coach {self.name} has been successfully assigned to the group: {group.group_name}")
+
+class Event:
+    def __init__(self, date_time: str, duration_mins: int, location: Location) -> None:
+        self._date_time: str = self._validate_date_time(date_time)
+        self._duration_mins: int = self._validate_duration_mins(duration_mins)
+        self.location: Location = location
+
+    @property
+    def date_time(self) -> str:
+        return self._date_time
+
+    def _validate_date_time(self, date_time: str) -> str:
+        if not re.match(r'^\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}', date_time):
+            raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY HH:MM")
+        try:
+            datetime.strptime(date_time, "%d.%m.%Y %H:%M")
+        except ValueError:
+            raise exceptions.InvalidDateError("An invalid date time has been specified")
+        return date_time                    
+
+    @property 
+    def duration_mins(self) -> int:
+        return self._duration_mins
+
+    def _validate_duration_mins(self, duration_mins: int) -> int:
+        if duration_mins <= 0:
+            raise exceptions.InvalidIdValueError("The duration in minutes must be positive")
+        return duration_mins
