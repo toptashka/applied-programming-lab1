@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import exceptions
 from datetime import datetime
@@ -46,8 +47,8 @@ class Athlete(Person):
     def __init__(self, person_id: int, name: str, phone: str, birth_date: str) -> None:
         super().__init__(person_id, name, phone)
         self.birth_date: str = birth_date
-        self.certificate: bool = None
-        self.achievements: list = []
+        self.certificate: MedicalCertificate | None = None
+        self._achievements: list[Achievement] = []
 
     @property
     def birth_date(self) -> str:
@@ -63,7 +64,6 @@ class Athlete(Person):
             raise exceptions.InvalidBirthDateError("An invalid date has been specified")
         if parsed_date > datetime.now():
             raise exceptions.InvalidBirthDateError("The date of birth cannot be in the future")
-        
         self._birth_date = value
 
     def get_info(self) -> str:
@@ -71,14 +71,19 @@ class Athlete(Person):
         
         return (f"{base_info}\n"
                 f"Birth Date: {self.birth_date}\n"
-                f"Achievements: {len(self.achievements)}\n"
+                f"Achievements: {len(self._achievements)}\n"
                 f"Certificate: {'Yes' if self.certificate else 'No'}")
+        
+    def add_achievement(self, achievement: Achievement) -> None:
+        self._achievements.append(achievement)
+        print(f"{achievement.title} successfully added")
 
 class Coach(Person):
     def __init__(self, person_id: int, name: str, phone: str, experience_years: int, specialization: str) -> None:
         super().__init__(person_id, name, phone)
         self.experience_years: int = experience_years
         self.specialization: str = specialization
+        self._groups: list[TrainingGroup] = []
 
     @property
     def experience_years(self) -> int:
@@ -99,3 +104,15 @@ class Coach(Person):
         if value.strip() == "":
             raise exceptions.InvalidSpecializationFormatError("Specialization cannot be empty")
         self._specialization = value
+
+    def get_info(self) -> str:
+        base_info = super().get_info()
+        
+        return (f"{base_info}\n"
+                f"Experience years: {self.experience_years}\n"
+                f"Specialization: {self.specialization}\n"
+                f"Number of groups: {len(self._groups)}")
+
+    def assign_to_group(self, group: TrainingGroup) -> None:
+        self._groups.append(group)
+        print(f"Coach {self.name} has been successfully assigned to the group: {group.group_name}")
