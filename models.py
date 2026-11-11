@@ -1,8 +1,10 @@
 from __future__ import annotations
+from datetime import datetime
 import re
 import exceptions
-from datetime import datetime
 
+
+# Базовый класс человека в системе спортивного клуба
 class Person:
     def __init__(self, person_id: int, name: str, phone: str) -> None:
         self._person_id: int = self._validate_id(person_id)
@@ -11,7 +13,7 @@ class Person:
 
     @property
     def person_id(self) -> int:
-        return self._person_id   
+        return self._person_id
 
     def _validate_id(self, person_id: int) -> int:
         if person_id < 0:
@@ -34,6 +36,7 @@ class Person:
 
     @phone.setter
     def phone(self, value: str) -> None:
+        # Проверка формата телефона: +7XXXXXXXXXX или 8XXXXXXXXXX
         if not re.match(r'^(8|\+7)\d{10}$', value):
             raise exceptions.InvalidPhoneFormatError(f"Invalid phone format: {value}")
         self._phone = value
@@ -43,6 +46,8 @@ class Person:
                 f"Name: {self.name}\n"
                 f"Phone: {self.phone}")
 
+
+# Класс спортсмена (наследуется от Person, содержит медсправку и список достижений)
 class Athlete(Person):
     def __init__(self, person_id: int, name: str, phone: str, birth_date: str) -> None:
         super().__init__(person_id, name, phone)
@@ -66,20 +71,28 @@ class Athlete(Person):
             raise exceptions.InvalidDateError("The date of birth cannot be in the future")
         self._birth_date = value
 
+    @property
+    def achievements(self) -> list[Achievement]:
+        return self._achievements
+
     def get_info(self) -> str:
         base_info = super().get_info()
+        cert_status = "No"
+        if self.certificate:
+            cert_status = "Valid" if self.certificate.is_valid else "Expired/Invalid"
         return (f"{base_info}\n"
                 f"Birth Date: {self.birth_date}\n"
                 f"Achievements: {len(self._achievements)}\n"
-                f"Certificate: {'Yes' if self.certificate else 'No'}")
-        
+                f"Certificate: {cert_status}")
+
     def add_achievement(self, achievement: Achievement) -> None:
         self._achievements.append(achievement)
-        print(f"{achievement.title} successfully added")
 
     def add_medical_certificate(self, certificate: MedicalCertificate) -> None:
         self.certificate = certificate
 
+
+# Класс медицинской справки для допуска к соревнованиям
 class MedicalCertificate:
     def __init__(self, issue_date: str, is_valid: bool) -> None:
         self.issue_date: str = issue_date
@@ -88,7 +101,7 @@ class MedicalCertificate:
     @property
     def issue_date(self) -> str:
         return self._issue_date
-        
+
     @issue_date.setter
     def issue_date(self, value: str) -> None:
         if not re.match(r'^\d{2}\.\d{2}\.\d{4}$', value):
@@ -108,9 +121,11 @@ class MedicalCertificate:
     @is_valid.setter
     def is_valid(self, value: bool) -> None:
         if not isinstance(value, bool):
-            raise TypeError("Invalid data type. Expected boolean (True/False).")
+            raise TypeError("Invalid data type. Expected boolean (True/False)")
         self._is_valid = value
 
+
+# Класс спортивного достижения / награды
 class Achievement:
     def __init__(self, title: str, date_awarded: str, sport: Sport) -> None:
         self._title: str = self._validate_title(title)
@@ -136,11 +151,13 @@ class Achievement:
         try:
             parsed_date = datetime.strptime(date_awarded, "%d.%m.%Y")
         except ValueError:
-            raise exceptions.InvalidDateError("An invalid date time has been specified")
+            raise exceptions.InvalidDateError("An invalid date has been specified")
         if parsed_date > datetime.now():
-            raise exceptions.InvalidDateError("The issue date cannot be in the future")
+            raise exceptions.InvalidDateError("The award date cannot be in the future")
         return date_awarded
 
+
+# Класс вида спорта
 class Sport:
     def __init__(self, name: str, category: str) -> None:
         self.name: str = name
@@ -149,7 +166,7 @@ class Sport:
     @property
     def name(self) -> str:
         return self._name
-    
+
     @name.setter
     def name(self, value: str) -> None:
         if value.strip() == "":
@@ -159,13 +176,15 @@ class Sport:
     @property
     def category(self) -> str:
         return self._category
-        
+
     @category.setter
     def category(self, value: str) -> None:
         if value.strip() == "":
             raise exceptions.InvalidNameFormatError("The category name cannot be empty")
         self._category = value
 
+
+# Класс спортивного инвентаря
 class Equipment:
     def __init__(self, item_name: str, quantity: int, sport: Sport) -> None:
         self.item_name: str = item_name
@@ -175,7 +194,7 @@ class Equipment:
     @property
     def item_name(self) -> str:
         return self._item_name
-            
+
     @item_name.setter
     def item_name(self, value: str) -> None:
         if value.strip() == "":
@@ -191,7 +210,9 @@ class Equipment:
         if value < 0:
             raise exceptions.InvalidQuantityError("The quantity cannot be negative")
         self._quantity = value
-        
+
+
+# Класс тренера (наследуется от Person, управляет тренировочными группами)
 class Coach(Person):
     def __init__(self, person_id: int, name: str, phone: str, experience_years: int, specialization: str) -> None:
         super().__init__(person_id, name, phone)
@@ -206,7 +227,7 @@ class Coach(Person):
     @experience_years.setter
     def experience_years(self, value: int) -> None:
         if value < 3:
-            raise exceptions.InvalidExperienceYearsError("Length of service does not meet the requirements")
+            raise exceptions.InvalidExperienceYearsError("Length of service does not meet the requirements (min 3 years)")
         self._experience_years = value
 
     @property
@@ -219,6 +240,10 @@ class Coach(Person):
             raise exceptions.InvalidSpecializationFormatError("Specialization cannot be empty")
         self._specialization = value
 
+    @property
+    def groups(self) -> list[TrainingGroup]:
+        return self._groups
+
     def get_info(self) -> str:
         base_info = super().get_info()
         return (f"{base_info}\n"
@@ -227,9 +252,11 @@ class Coach(Person):
                 f"Number of groups: {len(self._groups)}")
 
     def assign_to_group(self, group: TrainingGroup) -> None:
-        self._groups.append(group)
-        print(f"Coach {self.name} has been successfully assigned to the group: {group.group_name}")
+        if group not in self._groups:
+            self._groups.append(group)
 
+
+# Класс тренировочной группы
 class TrainingGroup:
     def __init__(self, group_name: str, sport: Sport, coach: Coach) -> None:
         self.group_name: str = group_name
@@ -244,39 +271,40 @@ class TrainingGroup:
     @group_name.setter
     def group_name(self, value: str) -> None:
         if value.strip() == "":
-            raise exceptions.InvalidNameFormatError("The name cannot be empty")
+            raise exceptions.InvalidNameFormatError("The group name cannot be empty")
         self._group_name = value
 
     def add_athlete(self, athlete: Athlete) -> None:
-        self.athletes.append(athlete)
-        print(f"{athlete.name} successfully added")
+        if athlete not in self.athletes:
+            self.athletes.append(athlete)
 
     def remove_athlete(self, athlete: Athlete) -> None:
         if athlete in self.athletes:
             self.athletes.remove(athlete)
-            print(f"{athlete.name} successfully removed")
 
+
+# Базовый класс мероприятия в расписании зала
 class Event:
     def __init__(self, date_time: str, duration_mins: int, location: Location) -> None:
         self._date_time: str = self._validate_date_time(date_time)
         self._duration_mins: int = self._validate_duration_mins(duration_mins)
         self.location: Location = location
-        self.attendance: list[Athlete] = [] 
+        self.attendance: list[Athlete] = []
 
     @property
     def date_time(self) -> str:
         return self._date_time
 
     def _validate_date_time(self, date_time: str) -> str:
-        if not re.match(r'^\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}$', date_time):
+        if not re.match(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$', date_time):
             raise exceptions.InvalidDateFormatError("Invalid date format. Expected: DD.MM.YYYY HH:MM")
         try:
             datetime.strptime(date_time, "%d.%m.%Y %H:%M")
         except ValueError:
             raise exceptions.InvalidDateError("An invalid date time has been specified")
-        return date_time                    
+        return date_time
 
-    @property 
+    @property
     def duration_mins(self) -> int:
         return self._duration_mins
 
@@ -284,14 +312,21 @@ class Event:
         if duration_mins <= 0:
             raise exceptions.InvalidDurationError("The duration in minutes must be positive")
         return duration_mins
-        
+
     def mark_attendance(self, athlete: Athlete) -> None:
         if athlete not in self.attendance:
             self.attendance.append(athlete)
-            print(f"Athlete {athlete.name} marked as present for event at {self.date_time}.")
-        else:
-             print(f"Athlete {athlete.name} is already marked as present.")
 
+
+# Класс тренировочного занятия (наследуется от Event)
+class TrainingSession(Event):
+    def __init__(self, date_time: str, duration_mins: int, location: Location, group: TrainingGroup, coach: Coach) -> None:
+        super().__init__(date_time, duration_mins, location)
+        self.group: TrainingGroup = group
+        self.coach: Coach = coach
+
+
+# Класс турнира (наследуется от Event)
 class Tournament(Event):
     def __init__(self, date_time: str, duration_mins: int, location: Location, title: str, sport: Sport) -> None:
         super().__init__(date_time, duration_mins, location)
@@ -306,16 +341,15 @@ class Tournament(Event):
     @title.setter
     def title(self, value: str) -> None:
         if value.strip() == "":
-             raise exceptions.InvalidNameFormatError("Tournament title cannot be empty")
+            raise exceptions.InvalidNameFormatError("Tournament title cannot be empty")
         self._title = value
-        
-    def add_participant(self, athlete: Athlete) -> None:
-         if athlete not in self.participants:
-             self.participants.append(athlete)
-             print(f"Athlete {athlete.name} registered for tournament {self.title}.")
-         else:
-             print(f"Athlete {athlete.name} is already registered.")
 
+    def add_participant(self, athlete: Athlete) -> None:
+        if athlete not in self.participants:
+            self.participants.append(athlete)
+
+
+# Класс спортивной локации / зала
 class Location:
     def __init__(self, name_location: str, capacity: int) -> None:
         self.name_location: str = name_location
@@ -327,21 +361,23 @@ class Location:
         return self._name_location
 
     @name_location.setter
-    def name_location(self, value: str) -> None: 
+    def name_location(self, value: str) -> None:
         if value.strip() == "":
-             raise exceptions.InvalidNameFormatError("The name cannot be empty")
+            raise exceptions.InvalidNameFormatError("The location name cannot be empty")
         self._name_location = value
 
     @property
     def capacity(self) -> int:
         return self._capacity
-    
+
     @capacity.setter
-    def capacity(self, value: int) -> None: 
+    def capacity(self, value: int) -> None:
         if value < 0:
-             raise exceptions.InvalidValueError("The capacity cannot be negative")
+            raise exceptions.InvalidValueError("The capacity cannot be negative")
         self._capacity = value
 
+
+# Класс менеджера (наследуется от Person, имеет уровень доступа)
 class Manager(Person):
     def __init__(self, access_level: int, person_id: int, name: str, phone: str) -> None:
         super().__init__(person_id, name, phone)
@@ -358,6 +394,6 @@ class Manager(Person):
         self._access_level = value
 
     def get_info(self) -> str:
-        base_info = super().get_info()                
+        base_info = super().get_info()
         return (f"{base_info}\n"
                 f"Access level: {self.access_level}")
